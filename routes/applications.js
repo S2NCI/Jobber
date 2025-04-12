@@ -1,44 +1,45 @@
-onst express = require('express');
+const express = require('express');
 const session = require('express-session');
+const db = require('../db/db');
+const logger = require('../logger/logger');
 const router = express.Router();
-const { db, logger } = require('../db/db');
 
 // View the list of applications
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
     const userId = req.session.user_id;
+    const isAdmin = req.session.isAdmin;
 
     if (!userId) {
         logger.logError('Attempted access to /applications without login.');
-        return res.status(401).send('User not logged in');
+        return next(new Error('User not logged in'));
     }
 
     db.get('SELECT admin FROM users WHERE id = ?', [userId], (err, row) => {
         if (err) {
             logger.logError('Error fetching user role', userId);
-            return res.status(500).send('Database error.');
+            return next(new Error('Database error.'));
         }
 
         if (!row) {
             logger.logError('User not found during application list retrieval', userId);
-            return res.status(404).send('User not found');
+            return next(new Error('User not found'));
         }
 
-        const isAdmin = row.admin;
         let query = 'SELECT * FROM applications WHERE user_id = ?';
         let params = [userId];
 
         if (isAdmin) {
             query = 'SELECT * FROM applications';
             params = [];
-            logger.logSystem('Admin retrieved full application list', userId);
+            logger.logInfo('Admin retrieved full application list', userId);
         } else {
-            logger.logSystem('User retrieved personal application list', userId);
+            logger.logInfo('User retrieved personal application list', userId);
         }
 
         db.all(query, params, (err, rows) => {
             if (err) {
                 logger.logError('Error retrieving application list', userId);
-                return res.status(500).send('Database error.');
+                return next(new Error('Database error.'));
             }
             res.render('applications', { applications: rows, isAdmin: isAdmin });
         });
@@ -46,34 +47,38 @@ router.get('/', async (req, res) => {
 });
 
 // View and modify details of a specific application
-router.get('/:id', (req, res) => {
+router.get('/:id', (req, res, next) => {
     const applicationId = req.params.id;
     const userId = req.session.user_id;
 
-    db.get(
-        'SELECT * FROM applications WHERE id = ? AND user_id = ?',
-        [applicationId, userId],
-        (err, row) => {
+    const isAdmin = req.session.isAdmin;
+    const query = isAdmin
+        ? 'SELECT * FROM applications WHERE id = ?'
+        : 'SELECT * FROM applications WHERE id = ? AND user_id = ?';
+    const params = isAdmin ? [applicationId] : [applicationId, userId];
+
+    db.get(query, params, (err, row) => {
             if (err) {
                 logger.logError('Error fetching application', userId);
-                return res.status(500).send('Database error.');
+                return next(new Error('Database error.'));
             }
 
             if (!row) {
                 logger.logError('Application not found or unauthorized access', userId);
-                return res.status(404).send('Application not found.');
+                return next(new Error('Application not found.'));
             }
 
-            logger.logSystem('Viewed application details', userId);
+            logger.logInfo(`Viewed details for application ${applicationId}`, userId);
             res.render('details', { application: row });
         }
     );
 });
 
 // Update the details of a specific application
-router.post('/:id', (req, res) => {
+router.post('/:id', (req, res, next) => {
     const applicationId = req.params.id;
     const { company, listing_url, status } = req.body;
+    const userId = req.session.user_id;
 
     db.run(
         `UPDATE applications SET company = ?, listing_url = ?, status = ?, last_update = ? WHERE id = ?`,
@@ -81,7 +86,7 @@ router.post('/:id', (req, res) => {
         function (err) {
             if (err) {
                 logger.logError('Failed to update application', userId);
-                return res.status(500).send('Error updating application');
+                return next(new Error('Error updating application'));
             }
 
             logger.logInfo('Application updated', userId);
@@ -91,11 +96,11 @@ router.post('/:id', (req, res) => {
 });
 
 // Add a new application
-router.post('/add', async (req, res) => {
+router.post('/add', async (req, res, next) => {
     const userId = req.session.user_id;
     if (!userId) {
         logger.logError('Unauthenticated attempt to add application');
-        return res.status(401).send('User not logged in');
+        return next(new Error('User not logged in'));
     }
 
     const { company, listing_url, status } = req.body;
@@ -108,7 +113,7 @@ router.post('/add', async (req, res) => {
         function (err) {
             if (err) {
                 logger.logError('Failed to add new application', userId);
-                return res.status(500).send('Error adding application');
+                return next(new Error('Error adding application'));
             }
 
             logger.logInfo('New application added', userId);

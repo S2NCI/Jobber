@@ -12,8 +12,9 @@ const app = express();
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+
+
 // CSP support
 app.use((req, res, next) => {
     res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'");
@@ -22,7 +23,7 @@ app.use((req, res, next) => {
 
 // Set up session handling (for login/logout)
 app.use(session({
-    secret: 'secret_key',
+    secret: 'session_secret_key',
     resave: false,
     saveUninitialized: true,
 }));
@@ -40,17 +41,35 @@ const adminRoutes = require('./routes/admin');
 const applicationRoutes = require('./routes/applications');
 
 // Route handlers
-app.use('/auth', authRoutes);
+app.use('/', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/applications', applicationRoutes);
 
-// Route for the root (homepage)
-app.get('/', (req, res) => {
-    res.render('login', { error: null });
+// Common Error Handling
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+
+    // Handle 404 errors
+    if (!err.status || err.status === 404) {
+        if (req.accepts('html')) {
+            res.status(404).send(`<h1>404 - Assets not Found</h1><pre>${err.message}</pre>`);
+        } else {
+            res.status(404).json({ error: err.message });
+        }
+    }
+    // Handle 500 server errors
+    else {
+        if (req.accepts('html')) {
+            res.status(500).send(`<h1>500 - Server Error</h1><pre>${err.message}</pre>`);
+        } else {
+            res.status(500).json({ error: err.message });
+        }
+    }
 });
+
 
 // Start the server
 const PORT = 3000;
 app.listen(PORT, () => {
-    logger.logError(`Server is running on http://localhost:${PORT}`);
+    logger.logSystem(`Server is running on http://localhost:${PORT}`);
 });

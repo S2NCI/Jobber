@@ -3,21 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <title>Job Applications</title>
-  <link rel="stylesheet" href="/public/style.css">
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <h1>Applications</h1>
-
-  <!-- Navigation Buttons -->
-  <div>
-    <button onclick="window.location.href='/'">Login</button>
-    <button onclick="window.location.href='/applications/add'">Add New Entry</button>
-    
-    <% if (isAdmin) { %>
-      <button onclick="window.location.href='/admin/logs'">Logs</button>
-      <button onclick="window.location.href='/admin/users'">Users</button>
-    <% } %>
-  </div>
+<!-- Navigation Buttons -->
+    <nav>
+      <a href="/logout">Logout</a>
+      <a href="/applications/add">Add New Entry</a>
+      <% if (isAdmin) { %>
+        <a href="/admin/logs">Logs</a>
+        <a href="/admin/users">Users</a>
+      <% } %>
+    </nav>
+    <h1>Applications</h1>
 
   <% if (applications.length === 0) { %>
     <p>No applications found.</p>

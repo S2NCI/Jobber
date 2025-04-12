@@ -11,7 +11,7 @@ const db = new sqlite3.Database('../db/database.sqlite', (err) => {
         logger.logError('Error opening database: ' + err.message);
         return;
     }
-    logger.logSystem('Connected to SQLite database.');
+    logger.logInfo('Connected to SQLite database.');
 });
 
 db.serialize(() => {

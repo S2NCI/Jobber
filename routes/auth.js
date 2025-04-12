@@ -2,21 +2,23 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const db = require('../db/db');
+const logger = require('../logger/logger');
 const router = express.Router();
 
 // Login page
-router.get('/login', (req, res) => {
+router.get('/', (req, res, next) => {
     res.render('login', { error: null });
 });
 
 // POST login/register
-router.post('/', (req, res) => {
+router.post('/', (req, res, next) => {
     const { email, password, action } = req.body;
 
     if (action === 'login') {
         db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
             if (err) {
-                console.error(err);
+                logger.logError(err, user_id);
+                return next(new Error('Error Logging In'));
                 return res.render('login', { error: 'Database error.' });
             }
 
@@ -31,13 +33,15 @@ router.post('/', (req, res) => {
 
             // Set session and redirect
             req.session.user_id = user.id;
+            req.session.isAdmin = !!user.admin; // store admin flag in session
             res.redirect('/applications');
         });
 
     } else if (action === 'register') {
         db.get('SELECT * FROM users WHERE email = ?', [email], async (err, existingUser) => {
             if (err) {
-                console.error(err);
+                logger.logError(err, user_id);
+                return next(new Error('Error Logging In'));
                 return res.render('login', { error: 'Database error.' });
             }
 
@@ -55,7 +59,8 @@ router.post('/', (req, res) => {
                 [email, hashedPassword, now, now],
                 function (err) {
                     if (err) {
-                        console.error(err);
+                        logger.logError(err, user_id);
+                        return next(new Error('Error Registering'));
                         return res.render('login', { error: 'Error creating account.' });
                     }
 
@@ -64,6 +69,7 @@ router.post('/', (req, res) => {
 
                     // Log them in
                     req.session.user_id = newUserId;  // Use newUserId instead of user.id
+                    req.session.isAdmin = false;
                     res.redirect('/applications');
                 }
             );
@@ -71,6 +77,17 @@ router.post('/', (req, res) => {
     } else {
         res.render('login', { error: 'Unknown action.' });
     }
+});
+
+// GET logout page
+router.get('/logout', (req, res, next) => {
+    req.session.destroy((err) => {
+        if (err) {
+            logger.logError('Error destroying session', req.session.userID);
+            return next(new Error('Error logging out'));
+        }
+        res.redirect('/');  // Redirect to login page after
+    });
 });
 
 module.exports = router;

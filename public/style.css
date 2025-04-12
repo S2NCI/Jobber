@@ -8,9 +8,10 @@ body {
 }
 
 h1, h2 {
+    background-color: #f4f4f4;
     color: #333;
-    text-align: center;
-    padding: 1rem 0;
+    padding-left: 5%;
+    text-align: left;
     font-weight: bold;
 }
 
@@ -82,10 +83,51 @@ input[type="text"], input[type="password"] {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
-
 input[type="text"]:focus, input[type="password"]:focus {
     border-color: #007bff;
     outline: none;
+}
+
+input[type="text"]:focus, input[type="email"]:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+input[type="text"], input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #fff;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Navigation */
+nav {
+    background-color: #f9f9f9; /* Eggshell white background */
+    margin-bottom: 30px;
+    padding-left: 5%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    display: flex;
+    justify-content: left;
+}
+
+nav a {
+    background-color: #f9f9f9; /* Same background as navbar */
+    color: #333; /* Blue color for text */
+    padding: 10px 16px;
+    font-size: 17px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 0;
+}
+
+nav a:hover {
+    background-color: #d3d3d3; /* Light grey background on hover */
+    color: #333; 
+    box-shadow: none;
 }
 
 p {
