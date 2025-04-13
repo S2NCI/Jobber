@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User List</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <nav>
+    <a href="/applications">Applications</a>
+  </nav>
+
+  <h1>User List</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Admin</th>
+        <th>Email</th>
+        <th>Last Login</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% users.forEach(user => { %>
+        <tr>
+          <td><%= user.id %></td>
+          <td><%= user.admin ? 'Yes' : 'No' %></td>
+          <td><%= user.email %></td>
+          <td><%= user.last_login ? new Date(user.last_login).toLocaleString() : 'Never' %></td>
+          <td>
+            <!-- Delete button -->
+            <form action="/admin/users/<%= user.id %>/delete" method="POST" id="button-form">
+                <button type="submit" id="delete-user-button">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</body>
+</html>

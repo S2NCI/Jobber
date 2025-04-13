@@ -6,10 +6,8 @@ const db = new sqlite3.Database(path.join(__dirname, 'database.sqlite'), (err) =
     if (err) {
         console.log('Failed to connect to SQLite database.');
     } else {
-        // logger.js
         var logger = require('../logger/logger');
         logger.logSystem('Connected to SQLite database');
-        console.log('Connected to SQLite database.');
     }
 });
 

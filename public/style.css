@@ -81,7 +81,7 @@ form {
 }
 
 
-#edit-application-form {
+#button-form {
     display: inline-block;
     margin: 0;
     padding: 0;
@@ -99,6 +99,21 @@ form {
     display: inline-block;
     box-shadow: none;
     width: auto;
+}
+
+#delete-user-button {
+    background-color: #ff4d4d;
+    border: none;
+    padding: 5;
+    font-size: inherit;
+    cursor: pointer;
+    display: inline-block;
+    box-shadow: none;
+    width: auto;
+}
+
+#delete-user-button:hover {
+    background-color: #cc0000;
 }
 
 

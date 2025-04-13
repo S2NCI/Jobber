@@ -41,7 +41,7 @@
             <td><%= new Date(app.last_update || app.applied_at).toLocaleString() %></td>
             <td>
                 <!-- Modify button -->
-                <form action="/applications/<%= app.id %>" method="GET" id="edit-application-form">
+                <form action="/applications/<%= app.id %>" method="GET" id="button-form">
                     <button type="submit" id="edit-application-button">Modify</button>
                 </form>
             </td>

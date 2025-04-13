@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Logs</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav>
+    <a href="/applications">Return to Applications</a>
+  </nav>
+
+  <h1>System Logs</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Event Type</th>
+        <th>Message</th>
+        <th>User ID</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% logs.forEach(log => { %>
+        <tr>
+          <td><%= log.id %></td>
+          <td><%= log.event_type %></td>
+          <td><%= log.message %></td>
+          <td><%= log.user_id %></td>
+          <td><%= new Date(log.created_at).toLocaleString() %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</body>
+</html>

@@ -6,71 +6,89 @@ const path = require('path');
 // logger.js
 const logger = require('../logger/logger');
 
-const db = new sqlite3.Database('../db/database.sqlite', (err) => {
+const db = new sqlite3.Database(path.join(__dirname, 'database.sqlite'), (err) => {
     if (err) {
-        logger.logError('Error opening database: ' + err.message);
+        console.log('Error opening database: ' + err.message);
         return;
     }
     logger.logInfo('Connected to SQLite database.');
+    initDatabase(); // Start the database initialization after connection is successful
 });
 
-db.serialize(() => {
+// Initialize the database: drop tables and recreate them
+function initDatabase() {
+    db.serialize(() => {
+        // Drop the logs table if it exists
+        db.run('DROP TABLE IF EXISTS logs', [], (err) => {
+            if (err) {
+                logger.logError('Error dropping logs table: ' + err.message);
+            } else {
+                logger.logInfo('Logs table dropped successfully.');
+            }
+        });
+        createTables();
+    });
+}
+
+// Create all necessary tables
+function createTables() {
     db.run(`
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email VARCHAR(100) NOT NULL UNIQUE,
-            password_hash VARCHAR NOT NULL,
-            failed_login_attempts INTEGER DEFAULT 0,
-            admin BOOLEAN DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            last_login TIMESTAMP
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email VARCHAR(100) NOT NULL UNIQUE,
+        password_hash VARCHAR NOT NULL,
+        failed_login_attempts INTEGER DEFAULT 0,
+        admin BOOLEAN DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_login TIMESTAMP
         );
     `);
 
     db.run(`
-        CREATE TABLE IF NOT EXISTS applications (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            company VARCHAR(50),
-            listing_url TEXT,
-            status VARCHAR,
-            user_id INTEGER NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            applied_at TIMESTAMP,
-            last_update TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id)
+    CREATE TABLE IF NOT EXISTS applications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company VARCHAR(50),
+        listing_url TEXT,
+        status VARCHAR,
+        user_id INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        applied_at TIMESTAMP,
+        last_update TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id)
         );
     `);
 
     db.run(`
-        CREATE TABLE IF NOT EXISTS logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            event_type VARCHAR(50),
-            message TEXT,
-            user_id INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id)
+    CREATE TABLE IF NOT EXISTS logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_type VARCHAR(50),
+        message TEXT,
+        user_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id)
         );
     `);
 
     db.run(`
-        CREATE TABLE IF NOT EXISTS sessions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            session_token VARCHAR(255),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            expires_at TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id)
+    CREATE TABLE IF NOT EXISTS sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        session_token VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id)
         );
     `);
 
-    logger.logSystem('Tables Created.');
-    insertTestData();
-});
+        logger.logSystem('Tables Created.');
+        insertTestData();
+}
 
 function insertTestData() {
     db.get('SELECT COUNT(*) AS count FROM users', (err, row) => {
         if (err) return logger.logError('Error checking users table: ' + err.message);
 
+        // If no rows then populate
         if (row.count === 0) {
             const rawUsers = [
                 { email: 'admin@example.com', password: 'admin123', admin: true },
@@ -116,6 +134,7 @@ function insertApplications() {
     db.get('SELECT COUNT(*) AS count FROM applications', (err, row) => {
         if (err) return logger.logError('Error checking applications table: ' + err.message);
 
+        // If no rows then populate
         if (row.count === 0) {
             const applications = [
                 { company: 'Tech Corp', listing_url: 'https://techcorp.com/jobs/1', status: 'Applied', user_id: 2 },

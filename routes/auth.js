@@ -34,6 +34,19 @@ router.post('/', (req, res, next) => {
             // Set session and redirect
             req.session.user_id = user.id;
             req.session.isAdmin = !!user.admin; // store admin flag in session
+
+            // Update login time
+            const now = new Date().toISOString();
+            db.run(
+                `UPDATE users SET last_login = ? WHERE id = ?`,
+                [now, user.id],
+                (err) => {
+                    if (err) {
+                        logger.logError('Failed to update last_login:', user.id);
+                    }
+                }
+            );
+
             res.redirect('/applications');
         });
 
