@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Modify Application - <%= application.company %></title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+  <h1>Modify Application - <%= application.company %></h1>
+
+  <form action="/applications/<%= application.id %>" method="POST">
+    <label for="company">Company:</label>
+    <input type="text" name="company" value="<%= application.company %>" required /><br><br>
+
+    <label for="status">Status:</label>
+     <select name="status" id="status">
+    <option value="Rejected" <%= application.status === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+    <option value="Awaiting Response" <%= application.status === 'Awaiting Response' ? 'selected' : '' %>>Awaiting Response</option>
+    <option value="Awaiting Interview" <%= application.status === 'Awaiting Interview' ? 'selected' : '' %>>Awaiting Interview</option>
+    <option value="Yet to Apply" <%= application.status === 'Yet to Apply' ? 'selected' : '' %>>Yet to Apply</option>
+     </select>
+
+    <label for="listing_url">Listing URL:</label>
+    <input type="text" name="listing_url" value="<%= application.listing_url %>" required /><br><br>
+
+    <button type="submit">Save Changes</button>
+  </form>
+
+  <br>
+  <a href="/applications">Back to Applications</a>
+</body>
+</html>

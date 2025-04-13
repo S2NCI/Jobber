@@ -1,20 +1,20 @@
 // app.js
 const express = require('express');
-const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
-const bodyParser = require('body-parser');
 const session = require('express-session');
+const path = require('path');
+const db = require('./db');
 
 // Initialize Express
 const app = express();
-const PORT = 3000;
 
-// Setup body parser
-app.use(bodyParser.urlencoded({ extended: true }));
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
 // Set up session handling (for login/logout)
 app.use(session({
-    secret: 'your_secret_key',
+    secret: 'secret_key',
     resave: false,
     saveUninitialized: true,
 }));
@@ -36,7 +36,13 @@ app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/applications', applicationRoutes);
 
+// Route for the root (homepage)
+app.get('/', (req, res) => {
+    res.render('login', { error: null });
+});
+
 // Start the server
+const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
