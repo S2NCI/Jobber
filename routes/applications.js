@@ -4,6 +4,36 @@ const db = require('../db/db');
 const logger = require('../logger/logger');
 const router = express.Router();
 
+// Add a new application
+router.post('/add', async (req, res, next) => {
+    console.log('Adding'); // Debug log
+    const userId = req.session.user_id;
+    if (!userId) {
+        logger.logError('Unauthenticated attempt to add application');
+        return next(new Error('User not logged in'));
+    }
+
+    const { company, listing_url, status } = req.body;
+    const now = new Date().toISOString();
+
+    db.run(
+        `INSERT INTO applications (company, listing_url, status, user_id, created_at, applied_at, last_update)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [company, listing_url, status, userId, now, now, now],
+        function (err) {
+            if (err) {
+                logger.logError('Failed to add new application', userId);
+                return next(new Error('Error adding application'));
+            }
+
+            logger.logInfo('New application added', userId);
+
+            // Redirect to the details page for the newly added application
+            res.redirect(`/applications/${this.lastID}`);
+        }
+    );
+});
+
 // View the list of applications
 router.get('/', async (req, res, next) => {
     const userId = req.session.user_id;
@@ -95,33 +125,20 @@ router.post('/:id', (req, res, next) => {
     );
 });
 
-// Add a new application
-router.post('/add', async (req, res, next) => {
+// Delete a specified application
+router.post('/:id/delete', (req, res, next) => {
+    const appId = req.params.id;
     const userId = req.session.user_id;
-    if (!userId) {
-        logger.logError('Unauthenticated attempt to add application');
-        return next(new Error('User not logged in'));
-    }
 
-    const { company, listing_url, status } = req.body;
-    const now = new Date().toISOString();
-
-    db.run(
-        `INSERT INTO applications (company, listing_url, status, user_id, created_at, applied_at, last_update)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [company, listing_url, status, userId, now, now, now],
-        function (err) {
-            if (err) {
-                logger.logError('Failed to add new application', userId);
-                return next(new Error('Error adding application'));
-            }
-
-            logger.logInfo('New application added', userId);
-
-            // Redirect to the details page for the newly added application
-            res.redirect(`/applications/${this.lastID}`);
+    db.run(`DELETE FROM applications WHERE id = ?`, [appId], function (err) {
+        if (err) {
+            logger.logError('Error deleting application', userId);
+            return next(new Error('Error deleting application'));
         }
-    );
+
+        logger.logInfo(`Application ${appId} deleted`, userId);
+        res.redirect('/applications');
+    });
 });
 
 module.exports = router;

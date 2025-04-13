@@ -3,10 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <title>Modify Application - <%= application.company %></title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css">
 </head>
-<body
-  <h1>Modify Application - <%= application.company %></h1>
+<body>
+
+<!-- Navigation Buttons -->
+    <nav>
+      <a href="/applications">Back to Applications</a>
+    </nav>
+  
+
+  <h1 class="centered-heading">Modify Application - <%= application.company %></h1>
 
   <form action="/applications/<%= application.id %>" method="POST">
     <label for="company">Company:</label>
@@ -19,14 +26,16 @@
     <option value="Awaiting Interview" <%= application.status === 'Awaiting Interview' ? 'selected' : '' %>>Awaiting Interview</option>
     <option value="Yet to Apply" <%= application.status === 'Yet to Apply' ? 'selected' : '' %>>Yet to Apply</option>
      </select>
-
+     <br><br><br>
     <label for="listing_url">Listing URL:</label>
     <input type="text" name="listing_url" value="<%= application.listing_url %>" required /><br><br>
 
     <button type="submit">Save Changes</button>
   </form>
 
-  <br>
-  <a href="/applications">Back to Applications</a>
+  <form action="/applications/<%= application.id %>/delete" method="POST" class="delete-form">
+    <button type="submit" class="delete-button">Delete Application</button>
+  </form>
+
 </body>
 </html>

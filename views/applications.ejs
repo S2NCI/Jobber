@@ -9,7 +9,9 @@
 <!-- Navigation Buttons -->
     <nav>
       <a href="/logout">Logout</a>
-      <a href="/applications/add">Add New Entry</a>
+      <form action="/applications/add" method="POST" id="add-application-form">
+        <button type="submit" id="add-application-button">Add New Entry</button>
+        </form>
       <% if (isAdmin) { %>
         <a href="/admin/logs">Logs</a>
         <a href="/admin/users">Users</a>
@@ -38,8 +40,10 @@
             <td><%= new Date(app.applied_at).toLocaleString() %></td>
             <td><%= new Date(app.last_update || app.applied_at).toLocaleString() %></td>
             <td>
-              <!-- Modify button -->
-              <a href="/applications/<%= app.id %>">Modify</a>
+                <!-- Modify button -->
+                <form action="/applications/<%= app.id %>" method="GET" id="edit-application-form">
+                    <button type="submit" id="edit-application-button">Modify</button>
+                </form>
             </td>
           </tr>
         <% }) %>
