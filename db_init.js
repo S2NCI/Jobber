@@ -1,6 +1,4 @@
-
 const sqlite3 = require('sqlite3').verbose();
-const bcrypt = require('bcrypt');
 const path = require('path');
 
 const db = new sqlite3.Database('./database.sqlite', (err) => {
@@ -79,32 +77,24 @@ function insertTestData() {
                 { email: 'user4@example.com', password: 'password3', admin: false },
             ];
 
-
             let usersInserted = 0;
 
             rawUsers.forEach(user => {
-                bcrypt.hash(user.password, 10, (err, hash) => {
-                    if (err) {
-                        console.error('Error hashing password:', err);
-                        return;
-                    }
-
-                    db.run(
-                        'INSERT INTO users (email, password_hash, admin) VALUES (?, ?, ?)',
-                        [user.email, hash, user.admin ? 1 : 0],
-                        (err) => {
-                            if (err) {
-                                console.error('Error inserting user:', err);
-                            }
-
-                            usersInserted++;
-                            if (usersInserted === rawUsers.length) {
-                                console.log('Test users inserted.');
-                                insertApplications();
-                            }
+                db.run(
+                    'INSERT INTO users (email, password_hash, admin) VALUES (?, ?, ?)',
+                    [user.email, user.password, user.admin ? 1 : 0],
+                    (err) => {
+                        if (err) {
+                            console.error('Error inserting user:', err);
                         }
-                    );
-                });
+
+                        usersInserted++;
+                        if (usersInserted === rawUsers.length) {
+                            console.log('Test users inserted.');
+                            insertApplications();
+                        }
+                    }
+                );
             });
         } else {
             console.log('Users table already has data. Skipping user insert.');
@@ -112,7 +102,6 @@ function insertTestData() {
         }
     });
 }
-
 
 function insertApplications() {
     db.get('SELECT COUNT(*) AS count FROM applications', (err, row) => {
@@ -137,6 +126,5 @@ function insertApplications() {
         }
     });
 };
-
 
 //db.close();

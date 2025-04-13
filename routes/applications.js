@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
     }
 
     // Check if the user is an admin
-    db.get('SELECT admin FROM users WHERE id = ?', [userId], (err, row) => {
+    db.get('SELECT admin FROM users WHERE id = ' + userId, (err, row) => {
         if (err) {
             console.error(err);
             return res.status(500).send('Database error.');
@@ -25,17 +25,15 @@ router.get('/', async (req, res) => {
 
         const isAdmin = row.admin;
 
-        let query = 'SELECT * FROM applications WHERE user_id = ?';
-        let params = [userId];
+        let query = 'SELECT * FROM applications WHERE user_id = ' + userId;
 
         // If the user is an admin, fetch all applications
         if (isAdmin) {
             query = 'SELECT * FROM applications';  // Fetch all applications if admin
-            params = [];  // No user_id filter
         }
 
         // Execute the query based on the user's role
-        db.all(query, params, (err, rows) => {
+        db.all(query, (err, rows) => {
             if (err) {
                 console.error(err);
                 return res.status(500).send('Database error.');
@@ -51,7 +49,7 @@ router.get('/:id', (req, res) => {
     const userId = req.session.user_id;
 
     // Fetch the application details by ID
-    db.get('SELECT * FROM applications WHERE id = ? AND user_id = ?', [applicationId, userId], (err, row) => {
+    db.get('SELECT * FROM applications WHERE id = ' + applicationId + ' AND user_id = ' + userId, (err, row) => {
         if (err) {
             console.error(err);
             return res.status(500).send('Database error.');
@@ -71,8 +69,7 @@ router.post('/:id', (req, res) => {
     const { company, listing_url, status } = req.body;
 
     db.run(
-        `UPDATE applications SET company = ?, listing_url = ?, status = ?, last_update = ? WHERE id = ?`,
-        [company, listing_url, status, new Date().toISOString(), applicationId],
+        `UPDATE applications SET company = '${company}', listing_url = '${listing_url}', status = '${status}', last_update = '${new Date().toISOString()}' WHERE id = ${applicationId}`,
         function (err) {
             if (err) {
                 console.error(err);
@@ -94,8 +91,7 @@ router.post('/add', async (req, res) => {
 
     db.run(
         `INSERT INTO applications (company, listing_url, status, user_id, created_at, applied_at, last_update)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [company, listing_url, status, userId, new Date().toISOString(), new Date().toISOString(), new Date().toISOString()],
+         VALUES ('${company}', '${listing_url}', '${status}', ${userId}, '${new Date().toISOString()}', '${new Date().toISOString()}', '${new Date().toISOString()}')`,
         function (err) {
             if (err) {
                 console.error(err);
@@ -106,6 +102,5 @@ router.post('/add', async (req, res) => {
         }
     );
 });
-
 
 module.exports = router;
