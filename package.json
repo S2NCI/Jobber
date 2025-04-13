@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-	"start": "node app.js",
-	"dev": "nodemon app.js"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "repository": {
     "type": "git",
@@ -20,12 +20,15 @@
   },
   "homepage": "https://github.com/S2NCI/Jobr#readme",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "body-parser": "^2.2.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
+    "express-session": "^1.18.1",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
+    "eslint": "^9.24.0",
     "nodemon": "^3.1.9"
   }
 }

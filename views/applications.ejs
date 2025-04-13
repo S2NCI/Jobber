@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Job Applications</title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+  <h1>Applications</h1>
+
+  <!-- Navigation Buttons -->
+  <div>
+    <button onclick="window.location.href='/'">Login</button>
+    <button onclick="window.location.href='/applications/add'">Add New Entry</button>
+    
+    <% if (isAdmin) { %>
+      <button onclick="window.location.href='/admin/logs'">Logs</button>
+      <button onclick="window.location.href='/admin/users'">Users</button>
+    <% } %>
+  </div>
+
+  <% if (applications.length === 0) { %>
+    <p>No applications found.</p>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Status</th>
+          <th>Applied Time</th>
+          <th>Last Update Time</th>
+          <th>Action</th> <!-- Modify column -->
+        </tr>
+      </thead>
+      <tbody>
+        <% applications.forEach(app => { %>
+          <tr>
+            <td><%= app.company %></td>
+            <td><%= app.status %></td>
+            <td><%= new Date(app.applied_at).toLocaleString() %></td>
+            <td><%= new Date(app.last_update || app.applied_at).toLocaleString() %></td>
+            <td>
+              <!-- Modify button -->
+              <a href="/applications/<%= app.id %>">Modify</a>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</body>
+</html>
