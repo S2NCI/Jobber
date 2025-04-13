@@ -11,6 +11,11 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+// CSP support
+app.use((req, res, next) => {
+    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'");
+    next();
+});
 
 // Set up session handling (for login/logout)
 app.use(session({
