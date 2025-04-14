@@ -2,7 +2,10 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const db = require('./db');
+const db = require('./db/db');
+
+// logger.js
+const logger = require('./logger/logger');
 
 // Initialize Express
 const app = express();
@@ -49,5 +52,5 @@ app.get('/', (req, res) => {
 // Start the server
 const PORT = 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    logger.logError(`Server is running on http://localhost:${PORT}`);
 });

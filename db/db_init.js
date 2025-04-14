@@ -3,73 +3,73 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const path = require('path');
 
-const db = new sqlite3.Database('./database.sqlite', (err) => {
+// logger.js
+const logger = require('../logger/logger');
+
+const db = new sqlite3.Database('../db/database.sqlite', (err) => {
     if (err) {
-        console.error('Error opening database:', err);
+        logger.logError('Error opening database: ' + err.message);
         return;
     }
-    console.log('Connected to SQLite database.');
+    logger.logSystem('Connected to SQLite database.');
 });
 
 db.serialize(() => {
     db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email VARCHAR(100) NOT NULL UNIQUE,
-      password_hash VARCHAR NOT NULL,
-      failed_login_attempts INTEGER DEFAULT 0,
-      admin BOOLEAN DEFAULT 0,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      last_login TIMESTAMP
-    );
-  `);
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email VARCHAR(100) NOT NULL UNIQUE,
+            password_hash VARCHAR NOT NULL,
+            failed_login_attempts INTEGER DEFAULT 0,
+            admin BOOLEAN DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_login TIMESTAMP
+        );
+    `);
 
     db.run(`
-    CREATE TABLE IF NOT EXISTS applications (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      company VARCHAR(50),
-      listing_url TEXT,
-      status VARCHAR,
-      user_id INTEGER NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      applied_at TIMESTAMP,
-      last_update TIMESTAMP,
-      FOREIGN KEY(user_id) REFERENCES users(id)
-    );
-  `);
+        CREATE TABLE IF NOT EXISTS applications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            company VARCHAR(50),
+            listing_url TEXT,
+            status VARCHAR,
+            user_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            applied_at TIMESTAMP,
+            last_update TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        );
+    `);
 
     db.run(`
-    CREATE TABLE IF NOT EXISTS logs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      event_type VARCHAR(50),
-      message TEXT,
-      user_id INTEGER NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(user_id) REFERENCES users(id)
-    );
-  `);
+        CREATE TABLE IF NOT EXISTS logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_type VARCHAR(50),
+            message TEXT,
+            user_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        );
+    `);
 
     db.run(`
-    CREATE TABLE IF NOT EXISTS sessions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      session_token VARCHAR(255),
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      expires_at TIMESTAMP,
-      FOREIGN KEY(user_id) REFERENCES users(id)
-    );
-  `);
+        CREATE TABLE IF NOT EXISTS sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            session_token VARCHAR(255),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            expires_at TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        );
+    `);
 
-    console.log("Tables Created.");
-
-    // Run the test data insertion
+    logger.logSystem('Tables Created.');
     insertTestData();
 });
 
-// Insert some test data if the tables are empty
 function insertTestData() {
     db.get('SELECT COUNT(*) AS count FROM users', (err, row) => {
-        if (err) return console.error('Error checking users table:', err);
+        if (err) return logger.logError('Error checking users table: ' + err.message);
 
         if (row.count === 0) {
             const rawUsers = [
@@ -79,13 +79,12 @@ function insertTestData() {
                 { email: 'user4@example.com', password: 'password3', admin: false },
             ];
 
-
             let usersInserted = 0;
 
             rawUsers.forEach(user => {
                 bcrypt.hash(user.password, 10, (err, hash) => {
                     if (err) {
-                        console.error('Error hashing password:', err);
+                        logger.logError('Error hashing password: ' + err.message);
                         return;
                     }
 
@@ -94,12 +93,12 @@ function insertTestData() {
                         [user.email, hash, user.admin ? 1 : 0],
                         (err) => {
                             if (err) {
-                                console.error('Error inserting user:', err);
+                                logger.logError(`Error inserting user ${user.email}: ` + err.message);
                             }
 
                             usersInserted++;
                             if (usersInserted === rawUsers.length) {
-                                console.log('Test users inserted.');
+                                logger.logInfo('Test users inserted.');
                                 insertApplications();
                             }
                         }
@@ -107,16 +106,15 @@ function insertTestData() {
                 });
             });
         } else {
-            console.log('Users table already has data. Skipping user insert.');
+            logger.logInfo('Users table already has data. Skipping user insert.');
             insertApplications();
         }
     });
 }
 
-
 function insertApplications() {
     db.get('SELECT COUNT(*) AS count FROM applications', (err, row) => {
-        if (err) return console.error('Error checking applications table:', err);
+        if (err) return logger.logError('Error checking applications table: ' + err.message);
 
         if (row.count === 0) {
             const applications = [
@@ -130,13 +128,10 @@ function insertApplications() {
                 stmt.run(app.company, app.listing_url, app.status, app.user_id);
             });
             stmt.finalize(() => {
-                console.log('Test applications inserted.');
+                logger.logInfo('Test applications inserted.');
             });
         } else {
-            console.log('Applications table already has data. Skipping test insert.');
+            logger.logInfo('Applications table already has data. Skipping test insert.');
         }
     });
-};
-
-
-//db.close();
+}
